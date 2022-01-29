@@ -7,13 +7,6 @@ import slugify from 'slugify'
 
 class Controller {
   async signup (req, res, next) {
-    const accountData = _.pick(req.body, ['subdomain', 'privacyAccepted', 'marketingAccepted'])
-    accountData.subdomain = slugify(accountData.subdomain, {
-      replacement: '-',
-      lower: true,
-      strict: true,
-      trim: true
-    })
     const userData = _.pick(req.body, ['email', 'password'])
     userData.language = req.body.language || process.env.DEFAULT_LOCALE
     const userErrors = await UserValidator.onSignup(userData)
@@ -24,23 +17,41 @@ class Controller {
       })
     }
     if (process.env.SIGNUP_WITH_ACTIVATE) {
-      const signupResponse = await AuthService.signupWithActivate(accountData, userData)
+      const signupResponse = await AuthService.signupWithActivate(userData)
       return res.json(signupResponse)
     } else {
-      const signupResponse = await AuthService.signup(accountData, userData)
+      const signupResponse = await AuthService.signup(userData)
       return res.json(signupResponse)
     }
   }
 
   async manualSignup (req, res, next) {
-    const accountData = _.pick(req.body, ['subdomain'])
-    accountData.subdomain = slugify(accountData.subdomain)
     const userData = _.pick(req.body, ['email', 'password'])
     userData.active = true
 
     return res.json({
       success: true,
       message: 'created'
+    })
+  }
+
+  async activateAccount (req, res) {
+    const userErrors = await UserValidator.onActivate(req.body)
+    if (userErrors) {
+      return res.status(422).json({
+        success: false,
+        errors: userErrors.details
+      })
+    }
+    const user = await AuthService.activate(req.body.token, req.body.email)
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Failed to activate account - No account found'
+      })
+    }
+    return res.json({
+      success: true
     })
   }
 

@@ -18,11 +18,12 @@ class AuthService {
     }
   }
 
-  async signup (accountData, userData) {
+  async signup (userData) {
+    console.log('signup', userData)
     userData.email = userData.email.trim().toLowerCase()
     userData.role = ROLES.ADMIN
     const user = await UserService.create(userData)
-    EmailService.generalNotification(process.env.NOTIFIED_ADMIN_EMAIL, i18n.t('authService.signup.subject'), i18n.t('authService.signup.messageAdmin', { email: userData.email, subdomain: accountData.subdomain }))
+    EmailService.generalNotification(process.env.NOTIFIED_ADMIN_EMAIL, i18n.t('authService.signup.subject'), i18n.t('authService.signup.messageAdmin', { email: userData.email }))
     return { user: user }
   }
 
@@ -34,7 +35,7 @@ class AuthService {
     return user
   }
 
-  async signupWithActivate (accountData, userData) {
+  async signupWithActivate (userData) {
     userData.email = userData.email.trim().toLowerCase()
     userData.role = ROLES.ADMIN
 
@@ -44,7 +45,7 @@ class AuthService {
     const user = await UserService.create(userData)
 
     EmailService.activated(user)
-    EmailService.generalNotification(process.env.NOTIFIED_ADMIN_EMAIL, i18n.t('authService.signup.subject'), i18n.t('authService.signup.messageAdmin', { email: userData.email, subdomain: accountData.subdomain }))
+    EmailService.generalNotification(process.env.NOTIFIED_ADMIN_EMAIL, i18n.t('authService.signup.subject'), i18n.t('authService.signup.messageAdmin', { email: userData.email }))
     const token = await this.generateToken(user.email)
     return { user: user, token: token }
   }

@@ -10,7 +10,6 @@ class UsersService extends BaseService {
   }
 
   async create (data) {
-    console.log('create')
     let sendForgot = false
     let sendConfirm = false
     if (data.password && data.password !== '') {
